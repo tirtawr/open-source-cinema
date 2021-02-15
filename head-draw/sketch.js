@@ -6,7 +6,13 @@ let myRoomName = "mycrazyCanvasRoomName";   //make a different room from classma
 let p5lm;
 let words = []; //bounce words arorund to show off canvas
 let textInput;
-
+let faceapi;
+let nosePosition = {
+    x: 512/2,
+    y: 512 * 3 / 4 / 2
+}
+let angleHeadingX;
+let angleHeadingY;
 
 function setup() {
     myCanvas = createCanvas(512, 512 * 3 /4);
@@ -24,14 +30,80 @@ function setup() {
     p5lm = new p5LiveMedia(this, "CANVAS", myCanvas, myRoomName)
     p5lm.on('stream', gotStream);
     p5lm.on('disconnect', gotDisconnect);
+    p5lm.on('data', gotHeadingData);
 
-    //ALSO ADD AUDIO STREAM
-    //addAudioStream() ;
 
-    // textInput = createInput("");
-    // let button = createButton("Add Text");
-    // button.mousePressed(myTextInputEvent);
+    faceapi = ml5.faceApi(myVideo, {
+        withLandmarks: true,
+        withDescriptors: false,
+    }, onFaceapiReady)
+
+
     init3D();
+}
+
+function onFaceapiReady() {
+    console.log('Face API Ready!')
+    faceapi.detect(gotFaceapiDection)
+}
+
+function gotFaceapiDection(err, result) {
+    if (err) {
+        console.error(err)
+        return
+    }
+
+    if (result) {
+        if (result.length > 0) {
+            const detection = result[0]
+            const nose = detection.parts.nose;
+            
+            let noseXSum = 0 
+            let noseYSum = 0
+            nose.forEach(item => {
+                noseXSum += item._x
+                noseYSum += item._y
+            })
+            nosePosition.x = noseXSum / nose.length
+            nosePosition.y = noseYSum / nose.length
+            sendHeadingData()
+        }
+
+    }
+    faceapi.detect(gotFaceapiDection)
+}
+
+function gotHeadingData(data, id) {
+    // If it is JSON, parse it
+
+    let d = JSON.parse(data);
+    for (var i = 0; i < people.length; i++) {
+        if (people[i].id == id) {
+            positionOnCircle(d.headingX, d.headingY, people[i].object);
+            break;
+        }
+    }
+
+}
+
+function sendHeadingData() {
+    const centerX = width/2
+    const centerY = height/2
+    const trueNoseX = width - nosePosition.x
+    const trueNoseY = nosePosition.y
+
+    const headingX = (trueNoseX - centerX) / (width / 2)
+    const headingY = (trueNoseY - centerY) / (height / 2)
+
+    angleHeadingX -= headingX / 50;
+    angleHeadingY += headingY / 50;
+
+    console.log(angleHeadingX)
+
+    positionOnCircle(angleHeadingX, angleHeadingY, myAvatarObj);
+
+    let dataToSend = { headingX, headingY };
+    p5lm.send(JSON.stringify(dataToSend));
 }
 
 // function myTextInputEvent() {
@@ -62,6 +134,10 @@ function creatNewVideoObject(videoObject, id) {  //this is for remote and local
 
     scene.add(myAvatarObj);
 
+    let radiansPerPerson = Math.PI / (people.length + 1)
+    angleHeadingX = people.length * radiansPerPerson + Math.PI;
+    angleHeadingY = Math.PI / 2
+
     people.push({ "object": myAvatarObj, "texture": myTexture, "id": id, "videoObject": videoObject });
     positionEveryoneOnACircle();
 }
@@ -83,17 +159,11 @@ function draw() {
     translate(width, 0); // move to far corner
     scale(-1.0, 1.0)
     image(myVideo, (myCanvas.width - myVideo.width) / 2, (myCanvas.height - myVideo.height) / 2);
-    //bouncing ball logic to show off canvas with bouncing text.
-    for (var i = 0; i < words.length; i++) {
-        let wordInfo = words[i];
-        wordInfo.x += wordInfo.xSpeed;
-        if (wordInfo.x > width || wordInfo.x < 0) wordInfo.xSpeed = -wordInfo.xSpeed
-        wordInfo.y += wordInfo.ySpeed;
-        if (wordInfo.y > height || wordInfo.y < 0) wordInfo.ySpeed = -wordInfo.ySpeed
-        textSize(32);
-        fill(255)
-        text(wordInfo.word, wordInfo.x, wordInfo.y);
-    }
+    push()
+    noStroke()
+    fill('magenta')
+    circle(nosePosition.x, nosePosition.y, 20)
+    pop()
 
 }
 
@@ -113,16 +183,21 @@ function positionEveryoneOnACircle() {
     //position it on a circle around the middle
     let radiansPerPerson = Math.PI / people.length;  //spread people out over 180 degrees?
     for (var i = 0; i < people.length; i++) {
-        let angle = i * radiansPerPerson;
+        let angleX = i * radiansPerPerson;
         let thisAvatar = people[i].object;
-        let distanceFromCenter = 800;
-        //imagine a circle looking down on the world and do High School math
-        angle = angle + Math.PI; //for some reason the camera starts point at 180 degrees
-        x = distanceFromCenter * Math.sin(angle);
-        z = distanceFromCenter * Math.cos(angle);
-        thisAvatar.position.set(x, 0, z);  //zero up and down
-        thisAvatar.lookAt(0, 0, 0);  //oriented towards the camera in the center
+        angleX = angleX + Math.PI; //for some reason the camera starts point at 180 degrees
+        positionOnCircle(angleX, 0, thisAvatar);
     }
+}
+
+function positionOnCircle(headingX, headingY, mesh) {
+    //imagine a circle looking down on the world and do High School math
+    let distanceFromCenter = 850;
+    x = distanceFromCenter * Math.sin(headingX);
+    z = distanceFromCenter * Math.cos(headingX);
+    // mesh.position.set(x, 0, z);
+    mesh.position.setFromSphericalCoords(distanceFromCenter, headingY, headingX)
+    mesh.lookAt(0, 0, 0);
 }
 
 
