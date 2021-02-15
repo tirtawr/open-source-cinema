@@ -13,6 +13,7 @@ let nosePosition = {
 }
 let angleHeadingX;
 let angleHeadingY;
+let dots = []
 
 function setup() {
     myCanvas = createCanvas(512, 512 * 3 /4);
@@ -74,12 +75,11 @@ function gotFaceapiDection(err, result) {
 }
 
 function gotHeadingData(data, id) {
-    // If it is JSON, parse it
-
     let d = JSON.parse(data);
+
     for (var i = 0; i < people.length; i++) {
         if (people[i].id == id) {
-            positionOnCircle(d.headingX, d.headingY, people[i].object);
+            positionOnCircle(d.angleHeadingX, d.angleHeadingY, people[i].object);
             break;
         }
     }
@@ -98,11 +98,22 @@ function sendHeadingData() {
     angleHeadingX -= headingX / 50;
     angleHeadingY += headingY / 50;
 
-    console.log(angleHeadingX)
+    // console.log(angleHeadingX)
 
     positionOnCircle(angleHeadingX, angleHeadingY, myAvatarObj);
 
-    let dataToSend = { headingX, headingY };
+    const dotColor = `#${Math.floor(Math.random()*16777215).toString(16)}`
+
+    if (dots.length > 50) dots.shift()
+    dots.push({
+        x: (width + (width * -headingX)) / 2,
+        y: (height + (height * headingY)) / 2,
+        color: dotColor
+    })
+
+    console.log(dots)
+
+    let dataToSend = { headingX, headingY, angleHeadingX, angleHeadingY, dotColor };
     p5lm.send(JSON.stringify(dataToSend));
 }
 
@@ -164,6 +175,14 @@ function draw() {
     fill('magenta')
     circle(nosePosition.x, nosePosition.y, 20)
     pop()
+
+    dots.forEach((dot) => {
+        push()
+        noStroke();
+        fill(dot.color);
+        circle(dot.x, dot.y, 20)
+        pop()
+    });
 
 }
 
