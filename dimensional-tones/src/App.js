@@ -2,13 +2,13 @@
 import { useEffect } from 'react';
 
 import './App.css';
-import engine from './lib/Engine'
+import Engine from './lib/Engine'
 
 function App() {
 
   useEffect(() => {
-    console.log('asd')
-    engine.init()
+    Engine.init()
+    Engine.animate()
   });
 
   return (

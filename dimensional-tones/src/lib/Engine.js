@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 
 import { DragControls } from './DragControls'
+import { OrbitControls } from './OrbitControls'
+
 
 let container;
 let camera, scene, renderer;
-let controls, group;
+let orbitControls;
+let dragControls, group;
 let enableSelection = false;
 
 const objects = [];
@@ -39,23 +42,23 @@ function init() {
   group = new THREE.Group();
   scene.add(group);
 
-  const geometry = new THREE.BoxGeometry(40, 40, 40);
+  const geometry = new THREE.BoxGeometry(50, 50, 50);
 
   for (let i = 0; i < 5; i++) {
 
     const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
 
-    object.position.x = Math.random() * 1000 - 500;
-    object.position.y = Math.random() * 600 - 300;
-    object.position.z = Math.random() * 800 - 400;
+    object.position.x = Math.random() * 1000;
+    object.position.y = Math.random() * 1000;
+    object.position.z = Math.random() * 1000;
 
-    object.rotation.x = Math.random() * 2 * Math.PI;
-    object.rotation.y = Math.random() * 2 * Math.PI;
-    object.rotation.z = Math.random() * 2 * Math.PI;
+    object.rotation.x = Math.PI;
+    object.rotation.y = Math.PI;
+    object.rotation.z = Math.PI;
 
-    object.scale.x = Math.random() * 2 + 1;
-    object.scale.y = Math.random() * 2 + 1;
-    object.scale.z = Math.random() * 2 + 1;
+    object.scale.x = 1;
+    object.scale.y = 1;
+    object.scale.z = 1;
 
     object.castShadow = true;
     object.receiveShadow = true;
@@ -66,6 +69,11 @@ function init() {
 
   }
 
+  // Init gridHelper
+  const gridHelper = new THREE.GridHelper(50 * 1000, 50 * 1000);
+  gridHelper.position.y = - 1;
+  scene.add(gridHelper);
+
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -75,19 +83,21 @@ function init() {
 
   container.appendChild(renderer.domElement);
 
-  controls = new DragControls([...objects], camera, renderer.domElement);
-  controls.addEventListener('drag', render);
+  orbitControls = new OrbitControls(camera, renderer.domElement);
+  // dragControls = new DragControls([...objects], camera, renderer.domElement);
+  dragControls = new DragControls(objects, camera, renderer.domElement);
 
-  //
-
+  dragControls.addEventListener('dragstart', function () { orbitControls.enabled = false; });
+  dragControls.addEventListener('dragend', function () { orbitControls.enabled = true; });
   window.addEventListener('resize', onWindowResize);
-
   document.addEventListener('click', onClick);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
+}
 
-  render();
-
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
 }
 
 function onWindowResize() {
@@ -96,8 +106,6 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-
-  render();
 
 }
 
@@ -119,7 +127,7 @@ function onClick(event) {
 
   if (enableSelection === true) {
 
-    const draggableObjects = controls.getObjects();
+    const draggableObjects = dragControls.getObjects();
     draggableObjects.length = 0;
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -145,28 +153,22 @@ function onClick(event) {
 
       }
 
-      controls.transformGroup = true;
+      dragControls.transformGroup = true;
       draggableObjects.push(group);
 
     }
 
     if (group.children.length === 0) {
 
-      controls.transformGroup = false;
+      dragControls.transformGroup = false;
       draggableObjects.push(...objects);
 
     }
 
   }
 
-  render();
-
 }
 
-function render() {
+const exports = { init, animate }
 
-  renderer.render(scene, camera);
-
-}
-
-export default { init }
+export default exports;
