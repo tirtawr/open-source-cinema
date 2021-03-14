@@ -13,9 +13,8 @@ function App() {
 
   return (
     <div id="info">
-      <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - drag controls<br />
-			Use "Shift+Click" to add/remove objects to/from a group.<br />
-			Grouped objects can be transformed as a union.
+      Move objects around with your mouse by dragging them around the screen.<br />
+			Use mouse and scroll wheel to move the camera around.
     </div>
   );
 }
