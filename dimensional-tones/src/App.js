@@ -18,10 +18,12 @@ function App() {
 
   const onPlayAlternating = () => {
     console.log('PlayAlternating')
+    Engine.playAlternating();
   }
 
   const onStop = () => {
     console.log('Stop')
+    Engine.resetPlayback()
   }
 
   return (

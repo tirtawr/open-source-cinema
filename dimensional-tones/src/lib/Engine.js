@@ -2,14 +2,21 @@ import * as THREE from 'three';
 
 import { DragControls } from './DragControls'
 import { OrbitControls } from './OrbitControls'
+import anime from 'animejs/lib/anime.es.js';
 
 let container;
 let camera, scene, renderer;
 let orbitControls, dragControls;
 const objects = [];
+let xPlane, yPlane, zPlane;
+let alternatingPlayback = {
+  timeline: null,
+  xPlane: -500,
+  zPlane: -500,
+  yPlane: 0,
+};
 
 function init() {
-
   container = document.createElement('div');
   document.body.appendChild(container);
 
@@ -21,12 +28,12 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf0f0f0);
 
-
   initLighting()
   initBoundingBox()
   initTonalBoxes()
   initGridHelper()
-
+  initPlaybackPlanes()
+  initAnimationTimeline()
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -47,14 +54,68 @@ function init() {
   window.addEventListener('resize', onWindowResize);
 }
 
-function ensureInsideBoundingBox(object) {
-  const offset = 50; // half of tonal box size
-  if (object.position.x > 500 - offset) object.position.x = 500 - offset;
-  if (object.position.z > 500 - offset) object.position.z = 500 - offset;
-  if (object.position.y > 1000 - offset) object.position.y = 1000 - offset;
-  if (object.position.x < -500 + offset) object.position.x = -500 + offset;
-  if (object.position.z < -500 + offset) object.position.z = -500 + offset;
-  if (object.position.y < 0 + offset) object.position.y = 0 + offset;
+function initPlaybackPlanes() {
+  xPlane = new THREE.Mesh(new THREE.BoxGeometry(10, 1000, 1000), new THREE.MeshLambertMaterial({ color: 0x2d6a4f, transparent: true, opacity: 0.3 }));
+  xPlane.position.x = -500;
+  xPlane.position.y = 500;
+  xPlane.visible = false;
+  scene.add(xPlane)
+
+  yPlane = new THREE.Mesh(new THREE.BoxGeometry(1000, 10, 1000), new THREE.MeshLambertMaterial({ color: 0x2d6a4f, transparent: true, opacity: 0.3 }));
+  yPlane.visible = false;
+  scene.add(yPlane)
+
+  zPlane = new THREE.Mesh(new THREE.BoxGeometry(1000, 1000, 10), new THREE.MeshLambertMaterial({ color: 0x2d6a4f, transparent: true, opacity: 0.3 }));
+  zPlane.position.y = 500;
+  zPlane.position.z = -500;
+  zPlane.visible = false;
+  scene.add(zPlane)
+}
+
+function initAnimationTimeline() {
+  const onUpdate = function() {
+    xPlane.position.x = alternatingPlayback.xPlane
+    zPlane.position.z = alternatingPlayback.zPlane
+    yPlane.position.y = alternatingPlayback.yPlane
+  } 
+  alternatingPlayback.timeline = anime.timeline({
+    autoplay: false,
+    loop: true,
+    easing: 'linear',
+    update: onUpdate
+  });
+  alternatingPlayback.timeline
+  .add({
+    targets: alternatingPlayback,
+    xPlane: 500,
+    duration: 2 * 1000,
+    changeBegin: function (_anim) { xPlane.visible = true; },
+    changeComplete: function (_anim) { xPlane.visible = false; },
+
+  })
+  .add({
+    targets: alternatingPlayback,
+    zPlane: 500,
+    duration: 2 * 1000,
+    changeBegin: function (_anim) { zPlane.visible = true; },
+    changeComplete: function (_anim) { zPlane.visible = false; },
+  })
+  .add({
+    targets: alternatingPlayback,
+    yPlane: 1000,
+    duration: 2 * 1000,
+    changeBegin: function (_anim) { yPlane.visible = true; },
+    changeComplete: function (_anim) { yPlane.visible = false; },
+  })
+}
+
+function playAlternating() {
+  alternatingPlayback.timeline.play()
+}
+
+function resetPlayback() {
+  alternatingPlayback.timeline.pause()
+  alternatingPlayback.timeline.seek(alternatingPlayback.timeline * 0)
 }
 
 function initLighting() {
@@ -148,6 +209,16 @@ function initGridHelper() {
   scene.add(gridHelper);
 }
 
+function ensureInsideBoundingBox(object) {
+  const offset = 50; // half of tonal box size
+  if (object.position.x > 500 - offset) object.position.x = 500 - offset;
+  if (object.position.z > 500 - offset) object.position.z = 500 - offset;
+  if (object.position.y > 1000 - offset) object.position.y = 1000 - offset;
+  if (object.position.x < -500 + offset) object.position.x = -500 + offset;
+  if (object.position.z < -500 + offset) object.position.z = -500 + offset;
+  if (object.position.y < 0 + offset) object.position.y = 0 + offset;
+}
+
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
@@ -161,6 +232,6 @@ function onWindowResize() {
 
 }
 
-const exports = { init, animate }
+const exports = { init, animate, playAlternating, resetPlayback }
 
 export default exports;
