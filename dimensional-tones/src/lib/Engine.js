@@ -88,7 +88,7 @@ function initAnimationTimeline() {
   .add({
     targets: alternatingPlayback,
     xPlane: 500,
-    duration: 2 * 1000,
+    duration: 1 * 1000,
     changeBegin: function (_anim) { xPlane.visible = true; },
     changeComplete: function (_anim) { xPlane.visible = false; },
 
@@ -96,14 +96,14 @@ function initAnimationTimeline() {
   .add({
     targets: alternatingPlayback,
     zPlane: 500,
-    duration: 2 * 1000,
+    duration: 1 * 1000,
     changeBegin: function (_anim) { zPlane.visible = true; },
     changeComplete: function (_anim) { zPlane.visible = false; },
   })
   .add({
     targets: alternatingPlayback,
     yPlane: 1000,
-    duration: 2 * 1000,
+    duration: 1 * 1000,
     changeBegin: function (_anim) { yPlane.visible = true; },
     changeComplete: function (_anim) { yPlane.visible = false; },
   })
