@@ -21,22 +21,8 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf0f0f0);
 
-  scene.add(new THREE.AmbientLight(0x505050));
 
-  const light = new THREE.SpotLight(0xffffff, 1.5);
-  light.position.set(0, 500, 2000);
-  light.angle = Math.PI / 9;
-
-  light.castShadow = true;
-  light.shadow.camera.near = 1000;
-  light.shadow.camera.far = 4000;
-  light.shadow.mapSize.width = 1024;
-  light.shadow.mapSize.height = 1024;
-
-  scene.add(light);
-
-
-
+  initLighting()
   initBoundingBox()
   initTonalBoxes()
   initGridHelper()
@@ -69,6 +55,20 @@ function ensureInsideBoundingBox(object) {
   if (object.position.x < -500 + offset) object.position.x = -500 + offset;
   if (object.position.z < -500 + offset) object.position.z = -500 + offset;
   if (object.position.y < 0 + offset) object.position.y = 0 + offset;
+}
+
+function initLighting() {
+  scene.add(new THREE.AmbientLight(0x505050));
+  const light = new THREE.SpotLight(0xffffff, 1.5);
+  light.position.set(0, 500, 2000);
+  light.angle = Math.PI / 9;
+  light.castShadow = true;
+  light.shadow.camera.near = 1000;
+  light.shadow.camera.far = 4000;
+  light.shadow.mapSize.width = 1024;
+  light.shadow.mapSize.height = 1024;
+
+  scene.add(light);
 }
 
 function initTonalBoxes() {
