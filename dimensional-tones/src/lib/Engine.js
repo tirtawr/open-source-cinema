@@ -85,12 +85,20 @@ function onTimelineUpdate() {
   detectTonalBoxesIntersection()
 }
 
+function onTimelineBegin() {
+  for (let i = 0; i < tonalBoxes.length; i++) {
+    tonalBoxes[i].material = tonalBoxes[i].offMaterial;
+    tonalBoxes[i].isOn = false;    
+  }
+}
+
 function initAlternatingTimeline() {
   alternatingTimeline = anime.timeline({
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: onTimelineUpdate
+    update: onTimelineUpdate,
+    begin: onTimelineBegin,
   });
   alternatingTimeline
   .add({
@@ -121,7 +129,8 @@ function initConcurrentTimeline() {
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: onTimelineUpdate
+    update: onTimelineUpdate,
+    begin: onTimelineBegin,
   });
   concurrentTimeline
     .add({
@@ -157,7 +166,7 @@ function resetPlayback() {
   concurrentTimeline.pause()
   concurrentTimeline.seek(concurrentTimeline.duration * 0)
   for (let i = 0; i < tonalBoxes.length; i++) {
-    tonalBoxes[i].visible = true;
+    tonalBoxes[i].material = tonalBoxes[i].onMaterial;
   }
 }
 
@@ -189,9 +198,15 @@ function initTonalBoxes() {
 
   for (let i = 0; i < params.length; i++) {
     const param = params[i];
-    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: param[0] }));
+    const onMaterial = new THREE.MeshLambertMaterial({ color: param[0] })
+    const offMaterial = new THREE.MeshBasicMaterial({ color: param[0], wireframe: true })
+    const object = new THREE.Mesh(geometry, onMaterial);
     
+    // custom fields
     object.note = param[1]
+    object.onMaterial = onMaterial
+    object.offMaterial = offMaterial
+    object.isOn = false
 
     object.position.x = Math.floor(Math.random() * 1000) - 500;
     object.position.y = Math.floor(Math.random() * 500);
@@ -270,15 +285,20 @@ function detectTonalBoxesIntersection() {
     const intersectXPlane = xPlane.position.x >= position.x - tonalBoxRadius && xPlane.position.x <= position.x + tonalBoxRadius
     const intersectYPlane = yPlane.position.y >= position.y - tonalBoxRadius && yPlane.position.y <= position.y + tonalBoxRadius
     const intersectZPlane = zPlane.position.z >= position.z - tonalBoxRadius && zPlane.position.z <= position.z + tonalBoxRadius
-    const prevVisibility = tonalBoxes[i].visible
-    const newVisibility = (intersectXPlane || intersectYPlane || intersectZPlane)
-    if (!prevVisibility && newVisibility) {
-      const synth = new Tone.Synth().toDestination();
-      synth.triggerAttackRelease(tonalBoxes[i].note, "8n", Tone.now())
-      // synth.triggerAttackRelease('C4', "8n", Tone.now())
+    const prevIsOn = tonalBoxes[i].isOn
+    const newIsOn = (intersectXPlane || intersectYPlane || intersectZPlane)
+    if (prevIsOn !== newIsOn) {
+      tonalBoxes[i].isOn = newIsOn;
+      if (tonalBoxes[i].isOn) {
+        tonalBoxes[i].material = tonalBoxes[i].onMaterial;
+      } else {
+        tonalBoxes[i].material = tonalBoxes[i].offMaterial;
+      }
+      if (!prevIsOn && newIsOn) {
+        const synth = new Tone.Synth().toDestination();
+        synth.triggerAttackRelease(tonalBoxes[i].note, '8n', Tone.now())
+      }
     }
-
-    tonalBoxes[i].visible = newVisibility
   }
 }
 
