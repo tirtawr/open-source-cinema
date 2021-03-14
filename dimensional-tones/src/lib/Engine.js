@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { DragControls } from './DragControls'
 import { OrbitControls } from './OrbitControls'
 import anime from 'animejs/lib/anime.es.js';
+import * as Tone from 'tone'
+
 
 let container;
 let camera, scene, renderer;
@@ -17,6 +19,7 @@ let planePosition = {
 }
 const tonalBoxRadius = 50;
 const fullLoopDuration = 4 * 1000;
+
 
 function init() {
   container = document.createElement('div');
@@ -176,17 +179,19 @@ function initTonalBoxes() {
   const geometry = new THREE.BoxGeometry(tonalBoxRadius * 2, tonalBoxRadius * 2, tonalBoxRadius * 2);
 
   const params = [
-    // [color],
-    [0xef476f],
-    [0xffd166],
-    [0xe29578],
-    [0x118ab2],
-    [0x073b4c],
+    // [color, note],
+    [0xef476f, "C2"],
+    [0xffd166, "C3"],
+    [0xe29578, "C4"],
+    [0x118ab2, "C5"],
+    [0x073b4c, "C6"],
   ]
 
   for (let i = 0; i < params.length; i++) {
     const param = params[i];
     const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: param[0] }));
+    
+    object.note = param[1]
 
     object.position.x = Math.floor(Math.random() * 1000) - 500;
     object.position.y = Math.floor(Math.random() * 500);
@@ -265,7 +270,15 @@ function detectTonalBoxesIntersection() {
     const intersectXPlane = xPlane.position.x >= position.x - tonalBoxRadius && xPlane.position.x <= position.x + tonalBoxRadius
     const intersectYPlane = yPlane.position.y >= position.y - tonalBoxRadius && yPlane.position.y <= position.y + tonalBoxRadius
     const intersectZPlane = zPlane.position.z >= position.z - tonalBoxRadius && zPlane.position.z <= position.z + tonalBoxRadius
-    tonalBoxes[i].visible = (intersectXPlane || intersectYPlane || intersectZPlane)    
+    const prevVisibility = tonalBoxes[i].visible
+    const newVisibility = (intersectXPlane || intersectYPlane || intersectZPlane)
+    if (!prevVisibility && newVisibility) {
+      const synth = new Tone.Synth().toDestination();
+      synth.triggerAttackRelease(tonalBoxes[i].note, "8n", Tone.now())
+      // synth.triggerAttackRelease('C4', "8n", Tone.now())
+    }
+
+    tonalBoxes[i].visible = newVisibility
   }
 }
 
