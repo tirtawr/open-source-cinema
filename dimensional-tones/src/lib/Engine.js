@@ -208,11 +208,6 @@ function initTonalBoxes() {
     object.offMaterial = offMaterial
     object.isOn = false
 
-    // Random locations
-    // object.position.x = Math.floor(Math.random() * 1000) - 500;
-    // object.position.y = Math.floor(Math.random() * 500);
-    // object.position.z = Math.floor(Math.random() * 1000) - 500;
-
     //Perfect positioning
     object.position.x = 0;
     object.position.y = (i + 1) * (1000 / 6);
@@ -309,6 +304,15 @@ function detectTonalBoxesIntersection() {
   }
 }
 
+function randomizeTonalBoxesPosition() {
+  for (let i = 0; i < tonalBoxes.length; i++) {
+    tonalBoxes[i].position.x = Math.floor(Math.random() * 1000) - 500;
+    tonalBoxes[i].position.y = Math.floor(Math.random() * 500);
+    tonalBoxes[i].position.z = Math.floor(Math.random() * 1000) - 500;
+  }
+
+}
+
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
@@ -322,6 +326,6 @@ function onWindowResize() {
 
 }
 
-const exports = { init, animate, playAlternating, playConcurrent, resetPlayback }
+const exports = { init, animate, playAlternating, playConcurrent, resetPlayback, randomizeTonalBoxesPosition }
 
 export default exports;

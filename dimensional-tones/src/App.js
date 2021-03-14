@@ -31,11 +31,16 @@ function App() {
     Engine.resetPlayback()
   }
 
+  const onRandomizeTonalBoxesPosition = () => {
+    Engine.randomizeTonalBoxesPosition()
+  }
+
   return (
     <div id="info">
       Move objects around with your mouse by dragging them around the screen.<br />
 			Use mouse and scroll wheel to move the camera around.<br/>
-      <a onClick={onPlayConcurrent}>Play Together</a> . <a onClick={onPlayAlternating}>Play Alternating</a> . <a onClick={onStop}>Stop</a>
+      <a onClick={onPlayConcurrent}>Play Together</a> . <a onClick={onPlayAlternating}>Play Alternating</a> . <a onClick={onStop}>Stop</a><br/>
+      <a onClick={onRandomizeTonalBoxesPosition}>Randomize Position</a>
     </div>
   );
 }
