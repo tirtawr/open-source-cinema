@@ -13,7 +13,7 @@ function App() {
   });
 
   const onPlayTogether = () => {
-    console.log('PlayTogether')
+    Engine.playConcurrent()
   }
 
   const onPlayAlternating = () => {

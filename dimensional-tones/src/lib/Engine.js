@@ -9,12 +9,12 @@ let camera, scene, renderer;
 let orbitControls, dragControls;
 const objects = [];
 let xPlane, yPlane, zPlane;
-let alternatingPlayback = {
-  timeline: null,
+let alternatingTimeline, concurrentTimeline;
+let planePosition = {
   xPlane: -500,
   zPlane: -500,
   yPlane: 0,
-};
+}
 
 function init() {
   container = document.createElement('div');
@@ -33,7 +33,8 @@ function init() {
   initTonalBoxes()
   initGridHelper()
   initPlaybackPlanes()
-  initAnimationTimeline()
+  initAlternatingTimeline()
+  initConcurrentTimeline()
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -72,36 +73,34 @@ function initPlaybackPlanes() {
   scene.add(zPlane)
 }
 
-function initAnimationTimeline() {
-  const onUpdate = function() {
-    xPlane.position.x = alternatingPlayback.xPlane
-    zPlane.position.z = alternatingPlayback.zPlane
-    yPlane.position.y = alternatingPlayback.yPlane
-  } 
-  alternatingPlayback.timeline = anime.timeline({
+function initAlternatingTimeline() {
+  alternatingTimeline = anime.timeline({
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: onUpdate
+    update: function() {
+      xPlane.position.x = planePosition.xPlane
+      zPlane.position.z = planePosition.zPlane
+      yPlane.position.y = planePosition.yPlane
+    }
   });
-  alternatingPlayback.timeline
+  alternatingTimeline
   .add({
-    targets: alternatingPlayback,
+    targets: planePosition,
     xPlane: 500,
     duration: 1 * 1000,
     changeBegin: function (_anim) { xPlane.visible = true; },
     changeComplete: function (_anim) { xPlane.visible = false; },
-
   })
   .add({
-    targets: alternatingPlayback,
+    targets: planePosition,
     zPlane: 500,
     duration: 1 * 1000,
     changeBegin: function (_anim) { zPlane.visible = true; },
     changeComplete: function (_anim) { zPlane.visible = false; },
   })
   .add({
-    targets: alternatingPlayback,
+    targets: planePosition,
     yPlane: 1000,
     duration: 1 * 1000,
     changeBegin: function (_anim) { yPlane.visible = true; },
@@ -109,13 +108,50 @@ function initAnimationTimeline() {
   })
 }
 
+function initConcurrentTimeline() {
+  concurrentTimeline = anime.timeline({
+    autoplay: false,
+    loop: true,
+    easing: 'linear',
+    update: function () {
+      xPlane.position.x = planePosition.xPlane
+      zPlane.position.z = planePosition.zPlane
+      yPlane.position.y = planePosition.yPlane
+    }
+  });
+  concurrentTimeline
+    .add({
+      targets: planePosition,
+      xPlane: 500,
+      zPlane: 500,
+      yPlane: 1000,
+      duration: 2 * 1000,
+      changeBegin: function (_anim) {
+        xPlane.visible = true;
+        yPlane.visible = true;
+        zPlane.visible = true;
+      },
+      changeComplete: function (_anim) {
+        xPlane.visible = false;
+        yPlane.visible = false;
+        zPlane.visible = false;
+      },
+    })
+}
+
 function playAlternating() {
-  alternatingPlayback.timeline.play()
+  alternatingTimeline.play()
+}
+
+function playConcurrent() {
+  concurrentTimeline.play()
 }
 
 function resetPlayback() {
-  alternatingPlayback.timeline.pause()
-  alternatingPlayback.timeline.seek(alternatingPlayback.timeline.duration * 0)
+  alternatingTimeline.pause()
+  alternatingTimeline.seek(alternatingTimeline.duration * 0)
+  concurrentTimeline.pause()
+  concurrentTimeline.seek(concurrentTimeline.duration * 0)
 }
 
 function initLighting() {
@@ -232,6 +268,6 @@ function onWindowResize() {
 
 }
 
-const exports = { init, animate, playAlternating, resetPlayback }
+const exports = { init, animate, playAlternating, playConcurrent, resetPlayback }
 
 export default exports;
