@@ -73,8 +73,19 @@ function initLighting() {
 
 function initTonalBoxes() {
   const geometry = new THREE.BoxGeometry(100, 100, 100);
-  for (let i = 0; i < 5; i++) {
-    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
+
+  const params = [
+    // [color],
+    [0xef476f],
+    [0xffd166],
+    [0x06d6a0],
+    [0x118ab2],
+    [0x073b4c],
+  ]
+
+  for (let i = 0; i < params.length; i++) {
+    const param = params[i];
+    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: param[0] }));
 
     object.position.x = Math.floor(Math.random() * 1000) - 500;
     object.position.y = Math.floor(Math.random() * 500);
