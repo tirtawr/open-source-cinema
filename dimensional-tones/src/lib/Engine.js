@@ -16,15 +16,16 @@ let planePosition = {
   yPlane: 0,
 }
 const tonalBoxRadius = 50;
+const fullLoopDuration = 4 * 1000;
 
 function init() {
   container = document.createElement('div');
   document.body.appendChild(container);
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
-  camera.position.z = 1000;
-  camera.position.y = 1000;
-  camera.position.x = 1000;
+  camera.position.z = 1500 + 30;
+  camera.position.y = 1500;
+  camera.position.x = 1500 - 100;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf0f0f0);
@@ -92,21 +93,21 @@ function initAlternatingTimeline() {
   .add({
     targets: planePosition,
     xPlane: 500,
-    duration: 1 * 1000,
+    duration: fullLoopDuration / 3,
     changeBegin: function (_anim) { xPlane.visible = true; },
     changeComplete: function (_anim) { xPlane.visible = false; },
   })
   .add({
     targets: planePosition,
     zPlane: 500,
-    duration: 1 * 1000,
+    duration: fullLoopDuration / 3,
     changeBegin: function (_anim) { zPlane.visible = true; },
     changeComplete: function (_anim) { zPlane.visible = false; },
   })
   .add({
     targets: planePosition,
     yPlane: 1000,
-    duration: 1 * 1000,
+    duration: fullLoopDuration / 3,
     changeBegin: function (_anim) { yPlane.visible = true; },
     changeComplete: function (_anim) { yPlane.visible = false; },
   })
@@ -125,7 +126,7 @@ function initConcurrentTimeline() {
       xPlane: 500,
       zPlane: 500,
       yPlane: 1000,
-      duration: 2 * 1000,
+      duration: fullLoopDuration,
       changeBegin: function (_anim) {
         xPlane.visible = true;
         yPlane.visible = true;
@@ -152,6 +153,9 @@ function resetPlayback() {
   alternatingTimeline.seek(alternatingTimeline.duration * 0)
   concurrentTimeline.pause()
   concurrentTimeline.seek(concurrentTimeline.duration * 0)
+  for (let i = 0; i < tonalBoxes.length; i++) {
+    tonalBoxes[i].visible = true;
+  }
 }
 
 function initLighting() {
