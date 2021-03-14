@@ -58,7 +58,7 @@ function ensureInsideBoundingBox(object) {
 }
 
 function initLighting() {
-  scene.add(new THREE.AmbientLight(0x505050));
+  scene.add(new THREE.AmbientLight(0xffffff));
   const light = new THREE.SpotLight(0xffffff, 1.5);
   light.position.set(0, 500, 2000);
   light.angle = Math.PI / 9;
@@ -78,7 +78,7 @@ function initTonalBoxes() {
     // [color],
     [0xef476f],
     [0xffd166],
-    [0x06d6a0],
+    [0xe29578],
     [0x118ab2],
     [0x073b4c],
   ]
@@ -136,7 +136,7 @@ function initBoundingBox() {
     boundingLine.scale.x = 1;
     boundingLine.scale.y = 1;
     boundingLine.scale.z = 1;
-    boundingLine.castShadow = true;
+    boundingLine.castShadow = false;
     boundingLine.receiveShadow = true;
     scene.add(boundingLine)
   }  
