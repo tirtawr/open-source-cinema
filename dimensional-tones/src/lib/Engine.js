@@ -35,32 +35,12 @@ function init() {
 
   scene.add(light);
 
-  const geometry = new THREE.BoxGeometry(50, 50, 50);
-  for (let i = 0; i < 5; i++) {
 
-    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
 
-    object.position.x = Math.floor(Math.random() * 1000) - 500;
-    object.position.y = Math.floor(Math.random() * 500);
-    object.position.z = Math.floor(Math.random() * 1000) - 500;
+  initBoundingBox()
+  initTonalBoxes()
+  initGridHelper()
 
-    object.scale.x = 1;
-    object.scale.y = 1;
-    object.scale.z = 1;
-
-    object.castShadow = true;
-    object.receiveShadow = true;
-
-    scene.add(object);
-
-    objects.push(object);
-
-  }
-
-  // Init gridHelper
-  const gridHelper = new THREE.GridHelper(1000, 20);
-  gridHelper.position.y = - 1;
-  scene.add(gridHelper);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -76,8 +56,85 @@ function init() {
   dragControls = new DragControls(objects, camera, renderer.domElement);
   dragControls.addEventListener('dragstart', function () { orbitControls.enabled = false; });
   dragControls.addEventListener('dragend', function () { orbitControls.enabled = true; })
+  dragControls.addEventListener('drag', function (event) { ensureInsideBoundingBox(event.object); });
 
   window.addEventListener('resize', onWindowResize);
+}
+
+function ensureInsideBoundingBox(object) {
+  const offset = 50; // half of tonal box size
+  if (object.position.x > 500 - offset) object.position.x = 500 - offset;
+  if (object.position.z > 500 - offset) object.position.z = 500 - offset;
+  if (object.position.y > 1000 - offset) object.position.y = 1000 - offset;
+  if (object.position.x < -500 + offset) object.position.x = -500 + offset;
+  if (object.position.z < -500 + offset) object.position.z = -500 + offset;
+  if (object.position.y < 0 + offset) object.position.y = 0 + offset;
+}
+
+function initTonalBoxes() {
+  const geometry = new THREE.BoxGeometry(100, 100, 100);
+  for (let i = 0; i < 5; i++) {
+    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
+
+    object.position.x = Math.floor(Math.random() * 1000) - 500;
+    object.position.y = Math.floor(Math.random() * 500);
+    object.position.z = Math.floor(Math.random() * 1000) - 500;
+
+    object.scale.x = 1;
+    object.scale.y = 1;
+    object.scale.z = 1;
+
+    object.castShadow = true;
+    object.receiveShadow = true;
+
+    ensureInsideBoundingBox(object)
+    scene.add(object);
+    objects.push(object);
+  }
+}
+
+function initBoundingBox() {
+  const boundingLines = []
+  const params = [
+    // [lenX, lenY, lenZ, posX, posY, posZ]
+    [10, 10, 1000, 500, 0, 0],
+    [10, 10, 1000, -500, 0, 0],
+    [10, 10, 1000, 500, 1000, 0],
+    [10, 10, 1000, -500, 1000, 0],
+    [1000, 10, 10, 0, 0, 500],
+    [1000, 10, 10, 0, 0, -500],
+    [1000, 10, 10, 0, 1000, 500],
+    [1000, 10, 10, 0, 1000, -500],
+    [10, 1000, 10, 500, 500, 500],
+    [10, 1000, 10, 500, 500, -500],
+    [10, 1000, 10, -500, 500, 500],
+    [10, 1000, 10, -500, 500, -500],
+  ]
+
+  for (let i = 0; i < params.length; i++) {
+    const param = params[i];
+    const object = new THREE.Mesh(new THREE.BoxGeometry(param[0], param[1], param[2]), new THREE.MeshLambertMaterial({ color: 0x2d6a4f }));
+    object.position.x = param[3]
+    object.position.y = param[4]
+    object.position.z = param[5]
+    boundingLines.push(object)
+  }
+
+  for (let i = 0; i < boundingLines.length; i++) {
+    const boundingLine = boundingLines[i];
+    boundingLine.scale.x = 1;
+    boundingLine.scale.y = 1;
+    boundingLine.scale.z = 1;
+    boundingLine.castShadow = true;
+    boundingLine.receiveShadow = true;
+    scene.add(boundingLine)
+  }  
+}
+
+function initGridHelper() {
+  const gridHelper = new THREE.GridHelper(1000, 20);
+  gridHelper.position.y = - 1;
+  scene.add(gridHelper);
 }
 
 function animate() {
