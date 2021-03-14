@@ -7,7 +7,7 @@ import anime from 'animejs/lib/anime.es.js';
 let container;
 let camera, scene, renderer;
 let orbitControls, dragControls;
-const objects = [];
+const tonalBoxes = [];
 let xPlane, yPlane, zPlane;
 let alternatingTimeline, concurrentTimeline;
 let planePosition = {
@@ -15,6 +15,7 @@ let planePosition = {
   zPlane: -500,
   yPlane: 0,
 }
+const tonalBoxRadius = 50;
 
 function init() {
   container = document.createElement('div');
@@ -47,7 +48,7 @@ function init() {
 
   orbitControls = new OrbitControls(camera, renderer.domElement);
 
-  dragControls = new DragControls(objects, camera, renderer.domElement);
+  dragControls = new DragControls(tonalBoxes, camera, renderer.domElement);
   dragControls.addEventListener('dragstart', function () { orbitControls.enabled = false; });
   dragControls.addEventListener('dragend', function () { orbitControls.enabled = true; })
   dragControls.addEventListener('drag', function (event) { ensureInsideBoundingBox(event.object); });
@@ -73,16 +74,19 @@ function initPlaybackPlanes() {
   scene.add(zPlane)
 }
 
+function onTimelineUpdate() {
+  xPlane.position.x = planePosition.xPlane
+  zPlane.position.z = planePosition.zPlane
+  yPlane.position.y = planePosition.yPlane
+  detectTonalBoxesIntersection()
+}
+
 function initAlternatingTimeline() {
   alternatingTimeline = anime.timeline({
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: function() {
-      xPlane.position.x = planePosition.xPlane
-      zPlane.position.z = planePosition.zPlane
-      yPlane.position.y = planePosition.yPlane
-    }
+    update: onTimelineUpdate
   });
   alternatingTimeline
   .add({
@@ -113,11 +117,7 @@ function initConcurrentTimeline() {
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: function () {
-      xPlane.position.x = planePosition.xPlane
-      zPlane.position.z = planePosition.zPlane
-      yPlane.position.y = planePosition.yPlane
-    }
+    update: onTimelineUpdate
   });
   concurrentTimeline
     .add({
@@ -169,7 +169,7 @@ function initLighting() {
 }
 
 function initTonalBoxes() {
-  const geometry = new THREE.BoxGeometry(100, 100, 100);
+  const geometry = new THREE.BoxGeometry(tonalBoxRadius * 2, tonalBoxRadius * 2, tonalBoxRadius * 2);
 
   const params = [
     // [color],
@@ -197,7 +197,7 @@ function initTonalBoxes() {
 
     ensureInsideBoundingBox(object)
     scene.add(object);
-    objects.push(object);
+    tonalBoxes.push(object);
   }
 }
 
@@ -246,13 +246,23 @@ function initGridHelper() {
 }
 
 function ensureInsideBoundingBox(object) {
-  const offset = 50; // half of tonal box size
+  const offset = tonalBoxRadius + 2;
   if (object.position.x > 500 - offset) object.position.x = 500 - offset;
   if (object.position.z > 500 - offset) object.position.z = 500 - offset;
   if (object.position.y > 1000 - offset) object.position.y = 1000 - offset;
   if (object.position.x < -500 + offset) object.position.x = -500 + offset;
   if (object.position.z < -500 + offset) object.position.z = -500 + offset;
   if (object.position.y < 0 + offset) object.position.y = 0 + offset;
+}
+
+function detectTonalBoxesIntersection() {
+  for (let i = 0; i < tonalBoxes.length; i++) {
+    const position = tonalBoxes[i].position;
+    const intersectXPlane = xPlane.position.x >= position.x - tonalBoxRadius && xPlane.position.x <= position.x + tonalBoxRadius
+    const intersectYPlane = yPlane.position.y >= position.y - tonalBoxRadius && yPlane.position.y <= position.y + tonalBoxRadius
+    const intersectZPlane = zPlane.position.z >= position.z - tonalBoxRadius && zPlane.position.z <= position.z + tonalBoxRadius
+    tonalBoxes[i].visible = (intersectXPlane || intersectYPlane || intersectZPlane)    
+  }
 }
 
 function animate() {
