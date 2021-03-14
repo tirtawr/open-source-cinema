@@ -115,7 +115,7 @@ function playAlternating() {
 
 function resetPlayback() {
   alternatingPlayback.timeline.pause()
-  alternatingPlayback.timeline.seek(alternatingPlayback.timeline * 0)
+  alternatingPlayback.timeline.seek(alternatingPlayback.timeline.duration * 0)
 }
 
 function initLighting() {
