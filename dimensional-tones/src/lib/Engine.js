@@ -85,7 +85,7 @@ function onTimelineUpdate() {
   detectTonalBoxesIntersection()
 }
 
-function onTimelineBegin() {
+function initTonalBoxesForPlayback() {
   for (let i = 0; i < tonalBoxes.length; i++) {
     tonalBoxes[i].material = tonalBoxes[i].offMaterial;
     tonalBoxes[i].isOn = false;    
@@ -97,8 +97,7 @@ function initAlternatingTimeline() {
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: onTimelineUpdate,
-    begin: onTimelineBegin,
+    update: onTimelineUpdate
   });
   alternatingTimeline
   .add({
@@ -129,8 +128,7 @@ function initConcurrentTimeline() {
     autoplay: false,
     loop: true,
     easing: 'linear',
-    update: onTimelineUpdate,
-    begin: onTimelineBegin,
+    update: onTimelineUpdate
   });
   concurrentTimeline
     .add({
@@ -153,10 +151,12 @@ function initConcurrentTimeline() {
 }
 
 function playAlternating() {
+  initTonalBoxesForPlayback()
   alternatingTimeline.play()
 }
 
 function playConcurrent() {
+  initTonalBoxesForPlayback()
   concurrentTimeline.play()
 }
 
@@ -208,9 +208,16 @@ function initTonalBoxes() {
     object.offMaterial = offMaterial
     object.isOn = false
 
-    object.position.x = Math.floor(Math.random() * 1000) - 500;
-    object.position.y = Math.floor(Math.random() * 500);
-    object.position.z = Math.floor(Math.random() * 1000) - 500;
+    // Random locations
+    // object.position.x = Math.floor(Math.random() * 1000) - 500;
+    // object.position.y = Math.floor(Math.random() * 500);
+    // object.position.z = Math.floor(Math.random() * 1000) - 500;
+
+    //Perfect positioning
+    object.position.x = 0;
+    object.position.y = (i + 1) * (1000 / 6);
+    object.position.z = 500 - ((i + 1) * (1000 / 6));
+
 
     object.scale.x = 1;
     object.scale.y = 1;
